@@ -1,41 +1,37 @@
-# Website
+# Docusaurus-сайт технической документации
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Этот каталог содержит Docusaurus-сайт с технической документацией проекта **«Информационная система управления расписанием, услугами и онлайн-записью службы инструкторов горнолыжного курорта»**.
 
-## Installation
+## Назначение
 
-```bash
-yarn
-```
+Сайт используется для публикации проектной и технической документации по подходу **Docs-as-Code**.
 
-## Local Development
+Документация включает:
 
-```bash
-yarn start
-```
+- карточку сервиса;
+- требования;
+- модели процессов и сценарии;
+- API-документацию;
+- описание хранения данных;
+- ERD-модели.
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+## Структура
 
-## Build
-
-```bash
-yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+```text
+my-website/
+├── docs/
+│   ├── intro.md
+│   ├── requirements/
+│   ├── processes/
+│   ├── api/
+│   ├── storage/
+│   └── erd/
+├── api_specs/
+│   └── backend-openapi.yaml
+├── static/
+│   ├── api/
+│   │   └── asyncapi.yaml
+│   └── img/
+├── docusaurus.config.js
+├── sidebars.js
+└── package.json
