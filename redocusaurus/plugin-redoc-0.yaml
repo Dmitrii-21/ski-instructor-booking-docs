@@ -1,0 +1,501 @@
+openapi: 3.0.3
+info:
+  title: Ski Resort Booking API
+  version: 1.0.0
+  description: API для сценария «Онлайн-запись клиента на занятие»
+servers:
+  - url: https://booking.resort.example
+paths:
+  /api/instructor-categories:
+    get:
+      summary: Получить категории инструкторов
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstructorCategory'
+  /api/services:
+    get:
+      summary: Получить список услуг
+      responses:
+        '200':
+          description: Список услуг
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+  /api/duration:
+    get:
+      summary: Получить варианты длительности занятия
+      responses:
+        '200':
+          description: Список длительностей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DurationOption'
+  /api/group-sizes:
+    get:
+      summary: Получить варианты количества участников
+      responses:
+        '200':
+          description: Список вариантов количества участников
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonCountOption'
+  /api/skill-levels:
+    get:
+      summary: Получить уровни катания
+      responses:
+        '200':
+          description: Список уровней катания
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkillLevel'
+  /api/legal/user-agreement:
+    get:
+      summary: Получить пользовательское соглашение
+      responses:
+        '200':
+          description: Текст соглашения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAgreement'
+  /api/instructors:
+    get:
+      summary: Получить список инструкторов
+      parameters:
+        - name: categoryId
+          in: query
+          required: true
+          description: ID выбранной категории инструктора
+          schema:
+            type: integer
+            example: 1
+        - name: date
+          in: query
+          required: true
+          description: Дата занятия
+          schema:
+            type: string
+            format: date
+            example: '2026-04-19'
+        - name: personCountOptionId
+          in: query
+          required: true
+          description: ID выбранного количества участников
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: Список инструкторов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Instructor'
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/instructors/{instructorId}/slots:
+    get:
+      summary: Получить слоты выбранного инструктора
+      parameters:
+        - name: instructorId
+          in: path
+          required: true
+          description: ID инструктора
+          schema:
+            type: integer
+            example: 101
+        - name: date
+          in: query
+          required: true
+          description: Дата занятия
+          schema:
+            type: string
+            format: date
+            example: '2026-04-19'
+        - name: durationOptionId
+          in: query
+          required: true
+          description: ID выбранной длительности занятия
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Список доступных слотов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilitySlot'
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Инструктор не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/bookings/hold:
+    post:
+      summary: Создать временный резерв слота
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HoldCreateRequest'
+      responses:
+        '201':
+          description: Hold создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingHold'
+        '400':
+          description: Ошибка в запросе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Слот уже недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/bookings/hold/{holdId}:
+    get:
+      summary: Получить данные временного резерва
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          description: ID временного резерва
+          schema:
+            type: integer
+            example: 9001
+      responses:
+        '200':
+          description: Данные hold
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingHold'
+        '404':
+          description: Hold не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/bookings/confirm:
+    post:
+      summary: Подтвердить запись
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingConfirmRequest'
+      responses:
+        '201':
+          description: Запись подтверждена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingConfirmResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Hold не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Hold истёк или слот уже занят
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    InstructorCategory:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Лыжи
+    Service:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 10
+        name:
+          type: string
+          example: Инструктор
+    DurationOption:
+      type: object
+      required:
+        - id
+        - name
+        - durationMinutes
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 1 час
+        durationMinutes:
+          type: integer
+          example: 60
+    PersonCountOption:
+      type: object
+      required:
+        - id
+        - name
+        - personsCount
+      properties:
+        id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: 2 человека
+        personsCount:
+          type: integer
+          example: 2
+    SkillLevel:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: Начинающий
+    UserAgreement:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          example: Пользовательское соглашение
+        content:
+          type: string
+          example: Текст пользовательского соглашения
+    Instructor:
+      type: object
+      required:
+        - id
+        - fullName
+      properties:
+        id:
+          type: integer
+          example: 101
+        fullName:
+          type: string
+          example: Иванов Иван
+    AvailabilitySlot:
+      type: object
+      required:
+        - id
+        - date
+        - startTime
+        - endTime
+        - status
+      properties:
+        id:
+          type: integer
+          example: 501
+        date:
+          type: string
+          format: date
+          example: '2026-04-19'
+        startTime:
+          type: string
+          example: '10:00'
+        endTime:
+          type: string
+          example: '11:00'
+        status:
+          type: string
+          enum:
+            - available
+            - hold
+            - booked
+          example: available
+    HoldCreateRequest:
+      type: object
+      required:
+        - categoryId
+        - serviceId
+        - durationOptionId
+        - personCountOptionId
+        - instructorId
+        - slotId
+        - date
+      properties:
+        categoryId:
+          type: integer
+          example: 1
+        serviceId:
+          type: integer
+          example: 10
+        durationOptionId:
+          type: integer
+          example: 1
+        personCountOptionId:
+          type: integer
+          example: 2
+        instructorId:
+          type: integer
+          example: 101
+        slotId:
+          type: integer
+          example: 501
+        date:
+          type: string
+          format: date
+          example: '2026-04-19'
+    BookingHold:
+      type: object
+      required:
+        - holdId
+        - slotId
+        - status
+        - expiresAt
+      properties:
+        holdId:
+          type: integer
+          example: 9001
+        slotId:
+          type: integer
+          example: 501
+        status:
+          type: string
+          example: hold
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2026-04-19T12:15:00Z'
+    BookingConfirmRequest:
+      type: object
+      required:
+        - holdId
+        - client
+      properties:
+        holdId:
+          type: integer
+          example: 9001
+        client:
+          type: object
+          required:
+            - fullName
+            - phone
+            - skillLevelId
+            - agreementAccepted
+          properties:
+            fullName:
+              type: string
+              example: Петров Петр Петрович
+            phone:
+              type: string
+              pattern: ^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$
+              example: +7 (999) 123-45-67
+            skillLevelId:
+              type: integer
+              example: 2
+            email:
+              type: string
+              format: email
+              nullable: true
+              example: petrov@example.com
+            comment:
+              type: string
+              nullable: true
+              example: Первое занятие
+            birthDate:
+              type: string
+              format: date
+              nullable: true
+              example: '2000-05-10'
+            agreementAccepted:
+              type: boolean
+              example: true
+    BookingConfirmResponse:
+      type: object
+      required:
+        - bookingId
+        - status
+        - message
+      properties:
+        bookingId:
+          type: integer
+          example: 10001
+        status:
+          type: string
+          example: confirmed
+        message:
+          type: string
+          example: Запись успешно создана
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: slot_unavailable
+        message:
+          type: string
+          example: Слот уже недоступен, выберите другое время

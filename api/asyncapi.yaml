@@ -1,0 +1,279 @@
+asyncapi: 2.6.0
+
+id: urn:ski-resort-booking-notification-async-api
+
+defaultContentType: application/json
+
+info:
+  title: Ski Resort Booking Notification Async API
+  version: 1.0.0
+  description: >
+    Асинхронное взаимодействие между информационной системой онлайн-записи
+    и сервисом уведомлений при создании новой записи клиента на занятие.
+
+servers:
+  rabbitmq:
+    url: rabbitmq.ski-resort.local:5672
+    protocol: amqp
+    description: RabbitMQ broker для передачи событий о записях на занятия.
+
+channels:
+  booking.created:
+    description: Канал событий о создании новой записи на занятие.
+    publish:
+      summary: Публикация события о создании записи
+      description: >
+        Информационная система онлайн-записи публикует событие после успешного
+        сохранения записи клиента на занятие.
+      operationId: publishBookingCreated
+      message:
+        $ref: '#/components/messages/BookingCreatedMessage'
+
+    subscribe:
+      summary: Получение события сервисом уведомлений
+      description: >
+        Сервис уведомлений получает событие о новой записи и отправляет
+        уведомление инструктору.
+      operationId: receiveBookingCreated
+      message:
+        $ref: '#/components/messages/BookingCreatedMessage'
+
+components:
+  messages:
+    BookingCreatedMessage:
+      name: BookingCreatedMessage
+      title: Событие о создании записи на занятие
+      summary: Сообщение отправляется после успешного создания записи клиента на занятие.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BookingCreatedPayload'
+
+  schemas:
+    BookingCreatedPayload:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - occurredAt
+        - booking
+      properties:
+        eventId:
+          type: string
+          description: Уникальный идентификатор события.
+          example: "booking-created-10001"
+
+        eventType:
+          type: string
+          description: Тип события.
+          enum:
+            - booking.created
+          example: "booking.created"
+
+        occurredAt:
+          type: string
+          format: date-time
+          description: Дата и время формирования события.
+          example: "2026-04-19T12:00:00Z"
+
+        booking:
+          $ref: '#/components/schemas/Booking'
+
+    Booking:
+      type: object
+      required:
+        - bookingId
+        - status
+        - category
+        - duration
+        - personCount
+        - skillLevel
+        - instructor
+        - slot
+        - client
+      properties:
+        bookingId:
+          type: integer
+          description: Идентификатор созданной записи на занятие.
+          example: 10001
+
+        status:
+          type: string
+          description: Статус записи.
+          enum:
+            - confirmed
+          example: "confirmed"
+
+        category:
+          $ref: '#/components/schemas/InstructorCategory'
+
+        duration:
+          $ref: '#/components/schemas/DurationOption'
+
+        personCount:
+          $ref: '#/components/schemas/PersonCountOption'
+
+        skillLevel:
+          $ref: '#/components/schemas/SkillLevel'
+
+        instructor:
+          $ref: '#/components/schemas/Instructor'
+
+        slot:
+          $ref: '#/components/schemas/AvailabilitySlot'
+
+        client:
+          $ref: '#/components/schemas/BookingClient'
+
+        comment:
+          type: string
+          nullable: true
+          description: Комментарий клиента к занятию.
+          example: "Первое занятие"
+
+    InstructorCategory:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Идентификатор категории инструктора.
+          example: 1
+
+        name:
+          type: string
+          description: Название категории инструктора.
+          example: "Лыжи"
+
+    DurationOption:
+      type: object
+      required:
+        - id
+        - name
+        - durationMinutes
+      properties:
+        id:
+          type: integer
+          description: Идентификатор варианта длительности занятия.
+          example: 1
+
+        name:
+          type: string
+          description: Название варианта длительности.
+          example: "1 час"
+
+        durationMinutes:
+          type: integer
+          description: Длительность занятия в минутах.
+          example: 60
+
+    PersonCountOption:
+      type: object
+      required:
+        - id
+        - name
+        - personsCount
+      properties:
+        id:
+          type: integer
+          description: Идентификатор варианта количества участников.
+          example: 2
+
+        name:
+          type: string
+          description: Название варианта количества участников.
+          example: "2 человека"
+
+        personsCount:
+          type: integer
+          description: Количество участников занятия.
+          example: 2
+
+    SkillLevel:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Идентификатор уровня катания.
+          example: 2
+
+        name:
+          type: string
+          description: Название уровня катания.
+          example: "Начинающий"
+
+    Instructor:
+      type: object
+      required:
+        - id
+        - fullName
+      properties:
+        id:
+          type: integer
+          description: Идентификатор инструктора.
+          example: 101
+
+        fullName:
+          type: string
+          description: ФИО инструктора.
+          example: "Иванов Иван"
+
+    AvailabilitySlot:
+      type: object
+      required:
+        - id
+        - date
+        - startTime
+        - endTime
+        - status
+      properties:
+        id:
+          type: integer
+          description: Идентификатор слота.
+          example: 501
+
+        date:
+          type: string
+          format: date
+          description: Дата занятия.
+          example: "2026-04-19"
+
+        startTime:
+          type: string
+          description: Время начала занятия.
+          example: "10:00"
+
+        endTime:
+          type: string
+          description: Время окончания занятия.
+          example: "11:00"
+
+        status:
+          type: string
+          description: Статус слота.
+          enum:
+            - available
+            - hold
+            - booked
+          example: "booked"
+
+    BookingClient:
+      type: object
+      required:
+        - fullName
+        - phone
+      properties:
+        fullName:
+          type: string
+          description: ФИО клиента.
+          example: "Петров Петр Петрович"
+
+        phone:
+          type: string
+          description: Номер телефона клиента.
+          pattern: '^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$'
+          example: "+7 (999) 123-45-67"

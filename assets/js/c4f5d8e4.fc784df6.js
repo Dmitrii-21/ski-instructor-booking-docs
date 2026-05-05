@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkmy_website=self.webpackChunkmy_website||[]).push([["823"],{7176(s,e,t){t.r(e),t.d(e,{default:()=>n});var r=t(4848);t(6540);var i=t(6347);function n(){return(0,r.jsx)(i.rd,{to:"/ski-instructor-booking-docs/docs/intro"})}}}]);
